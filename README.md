@@ -1,35 +1,45 @@
-# tg_bot
-Я разработал интеллектуального Telegram-бота "Шеф-помощник", который создает персонализированные рецепты на основе продуктов, имеющихся у пользователя в холодильнике. Бот сочетает в себе современные технологии искусственного интеллекта и классические подходы к разработке программного обеспечения.
-Telegram-бот "Шеф-помощник": Разработка кулинарного ассистента
- 
- О проекте
-Технологический стек
-Python-библиотеки и фреймворки
-Основные зависимости:
-•	aiogram - современный асинхронный фреймворк для Telegram Bot API
-•	fastapi - высокопроизводительный веб-фреймворк для создания API
-•	uvicorn - ASGI-сервер для запуска FastAPI приложений
-Работа с данными:
-•	sqlalchemy - ORM для работы с базой данных
-•	alembic - инструмент для миграций базы данных
-•	asyncpg - асинхронный драйвер для PostgreSQL
-Интеграция с AI:
-•	gigachat - официальная библиотека для работы с GigaChat API от Сбера
-•	aiohttp - асинхронные HTTP-запросы
-Вспомогательные:
-•	python-dotenv - управление переменными окружения
-•	python-multipart - обработка multipart данных
+# Telegram-бот "Шеф-помощник": Разработка кулинарного ассистента
 
-Архитектура базы данных
-Модели данных (SQLAlchemy)
+## О проекте
+
+Я разработал интеллектуального Telegram-бота "Шеф-помощник", который создает персонализированные рецепты на основе продуктов, имеющихся у пользователя в холодильнике. Бот сочетает в себе современные технологии искусственного интеллекта и классические подходы к разработке программного обеспечения.
+
+## Технологический стек
+
+### Python-библиотеки и фреймворки
+
+**Основные зависимости:**
+- `aiogram` - современный асинхронный фреймворк для Telegram Bot API
+- `fastapi` - высокопроизводительный веб-фреймворк для создания API
+- `uvicorn` - ASGI-сервер для запуска FastAPI приложений
+
+**Работа с данными:**
+- `sqlalchemy` - ORM для работы с базой данных
+- `alembic` - инструмент для миграций базы данных
+- `asyncpg` - асинхронный драйвер для PostgreSQL
+
+**Интеграция с AI:**
+- `gigachat` - официальная библиотека для работы с GigaChat API от Сбера
+- `aiohttp` - асинхронные HTTP-запросы
+
+**Вспомогательные:**
+- `python-dotenv` - управление переменными окружения
+- `python-multipart` - обработка multipart данных
+
+## Архитектура базы данных
+
+### Модели данных (SQLAlchemy)
+
 Я реализовал реляционную структуру с использованием асинхронного SQLAlchemy:
 
+```python
 # Модель продуктов в холодильнике
 class FridgeItem(Base):
     user_id = Column(Integer, index=True)
     ingredient_name = Column(String(100))
     quantity = Column(String(100))
     category = Column(String(50))
+
 # Модель рецептов
 class Recipe(Base):
     user_id = Column(Integer, index=True)
@@ -37,8 +47,10 @@ class Recipe(Base):
     ingredients = Column(JSON)
     instructions = Column(Text)
     cooking_time = Column(Integer)
-Асинхронная работа с БД
+```
+### Асинхронная работа с БД
 Я использовал асинхронные возможности SQLAlchemy для максимальной производительности:
+```python
 # Инициализация асинхронного движка
 engine = create_async_engine(config.DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -50,37 +62,30 @@ async def get_db():
             yield session
         finally:
             await session.close()
-Интеграция GigaChat
+```
+## Интеграция GigaChat
 
-Аутентификация и инициализация:
+### Аутентификация и инициализация:
+```python
 self.client = GigaChat(
     credentials=config.GIGACHAT_CLIENT_SECRET,
     scope=config.GIGACHAT_SCOPE,
     verify_ssl_certs=False,
     timeout=60
 )
-Умный промпт-инжиниринг:
-Я разработал строгий шаблон промпта, который гарантирует, что GigaChat использует только доступные ингредиенты:
-def _create_strict_recipe_prompt(self, ingredients: list, user_preferences: dict) -> str:
-    prompt = f"""
-ЗАДАЧА: СОЗДАТЬ РЕЦЕПТ ИСКЛЮЧИТЕЛЬНО ИЗ УКАЗАННЫХ ИНГРЕДИЕНТОВ
-
-ДОСТУПНЫЕ ИНГРЕДИЕНТЫ (ЭТО ВСЕ, ЧТО ЕСТЬ):
-{formatted_ingredients}
-
-ЗАПРЕЩЕНО:
-- Добавлять любые другие ингредиенты, кроме указанных выше
-- Предлагать продукты, которых нет в списке
-"""
-Асинхронная обработка:
+```
+### Асинхронная обработка:
+```python
 # Асинхронный вызов GigaChat API
 response = await asyncio.to_thread(self.client.chat, chat)
 recipe_text = response.choices[0].message.content
-Алгоритм умного подбора
+```
+### Алгоритм умного подбора
+```python
 def _select_ingredients_for_recipe(self, all_ingredients: List[str]) -> List[str]:
     # Автоматическая категоризация продуктов
     categories = {
-        "белки": [], "овощи": [], "гарниры": [], 
+        "белки": [], "овощи": [], "гарниры": [],
         "молочные": [], "бакалея": []
     }
     
@@ -89,12 +94,18 @@ def _select_ingredients_for_recipe(self, all_ingredients: List[str]) -> List[str
     if categories["белки"]:
         protein = random.choice(categories["белки"])
         selected_ingredients.append(protein)
-Архитектура приложения
-Многослойная структура
-1.	Presentation Layer (bot.py)
-2.	Business Logic Layer (agent.py)
-3.	AI Integration Layer (gigachat_client.py)
-4.	Data Access Layer (database.py, models.py)
-5.	Configuration Layer (config.py)
+```
 
+## Архитектура приложения
 
+### Многослойная структура
+
+Presentation Layer (bot.py)
+
+Business Logic Layer (agent.py)
+
+AI Integration Layer (gigachat_client.py)
+
+Data Access Layer (database.py, models.py)
+
+Configuration Layer (config.py)
